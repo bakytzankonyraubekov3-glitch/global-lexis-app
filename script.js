@@ -1,334 +1,255 @@
-// =========================================================
-// 1. ҒАЛАМДЫҚ ЛЕКСИКАЛЫҚ ДЕРЕКТЕР ҚОРЫ (LEXIS_DATA) - ЕҢ БАСЫ
-// "Қыз" сөзі қосылған
-// =========================================================
+document.addEventListener('DOMContentLoaded', () => {
+    // ---------------------------------------------------------------------
+    // 1. КОНСТАНТАЛАР МЕН ДЕРЕКТЕР ҚОРЫ
+    // ---------------------------------------------------------------------
+    const recordButton = document.getElementById('record-button');
+    const recordText = document.getElementById('record-text');
+    const statusMessage = document.getElementById('status-message');
+    const resultOutput = document.getElementById('result-output');
+    const languageSelect = document.getElementById('language');
+    let recognition; // SpeechRecognition объектісін сақтау үшін
 
-const LEXICAL_HERITAGE = [
-    {
-        word_kz: "Ата",
-        meaning_kz: "Әке немесе Арғы ата",
-        categories: ["Туыстық", "Ұғым"],
-        matches: [
-            { lang: "Шумер", word: "AD.DA (Ада)", similarity: "Жоғары", note: "Мағынасы: Әке, Аға." },
-            { lang: "Мая (Юкатан)", word: "Таат (Ta'at)", similarity: "Орташа", note: "Мағынасы: Қайын ата." },
-            { lang: "Венгер", word: "Atya", similarity: "Жоғары", note: "Мағынасы: Әке." },
-            { lang: "Түрік", word: "Ata", similarity: "Жоғары", note: "Мағынасы: Ата." }
-        ]
-    },
-    {
-        word_kz: "Сан-Бір",
-        meaning_kz: "Бір саны",
-        categories: ["Сандар"],
-        matches: [
-            { lang: "Мая (Лакандон)", word: "Hun (Хун)", similarity: "Жоғары", note: "Мағынасы: Бір (Хун/Күн ұғымымен байланысты)." },
-            { lang: "Жапон", word: "Hito/Ichi", similarity: "Төмен", note: "Дауысты дыбыстың ұқсастығы." },
-            { lang: "Убых (Өлі)", word: "zə", similarity: "Жоқ", note: "Басқа тіл тобына жатады, бірақ талдау үшін қосқан жөн." },
-        ]
-    },
-    {
-        word_kz: "Көк",
-        meaning_kz: "Аспан, Түс (Көгілдір)",
-        categories: ["Түс", "Табиғат", "Мифология"],
-        matches: [
-            { lang: "Түрікмен", word: "Gök", similarity: "Жоғары", note: "Мағынасы: Көк, Аспан." },
-            { lang: "Қарашай", word: "Кёк (Kök)", similarity: "Жоғары", note: "Мағынасы: Көк, Аспан, Түс." },
-            { lang: "Татар", word: "Күк (Kük)", similarity: "Жоғары", note: "Мағынасы: Көк, Аспан." },
-            { lang: "Шумер", word: "KUK (Кук)", similarity: "Орташа", note: "Көк түс/сәуле мағынасына ие болуы мүмкін." },
-            { lang: "Венгер", word: "Kék", similarity: "Жоғары", note: "Мағынасы: Көк (түс)." },
-            { lang: "Орыс (Славян)", word: "Синий (Siniy)", similarity: "Мән-мағыналық", note: "Көк түстің заманауи славян атауы, салыстырмалы талдау үшін." }
-        ]
-    },
-    {
-        word_kz: "Қыз",
-        meaning_kz: "Әйел адам (бала)",
-        categories: ["Туыстық", "Ұғым", "Әлеуметтік"],
-        matches: [
-            { lang: "Осетин (Ирон)", word: "Чызг (Chyzg)", similarity: "Жоғары", note: "Мағынасы: Қыз. Иран тілдері тобымен ежелгі байланысты көрсетеді." },
-            { lang: "Қарашай", word: "Къыз (Qyz)", similarity: "Жоғары", note: "Мағынасы: Қыз." },
-            { lang: "Убых (Өлі)", word: "čǝźǝ", similarity: "Орташа", note: "Кавказ тілдері тобындағы ұқсас түбірлер. Бұл жойылған тілдің мұрасы." },
-            { lang: "Шумер", word: "SAL (САЛ)", similarity: "Мән-мағыналық", note: "Мағынасы: Әйел, нәзік жан. Дыбыстық ұқсастық жоқ, бірақ мағынасы сәйкес." }
-        ]
-    }
-];
+    // ЛЕКСИКАЛЫҚ МҰРАНЫҢ ДЕРЕКТЕР ҚОРЫ
+    const LEXICAL_HERITAGE = [
+        {
+            word_kz: "Ата",
+            meaning_kz: "Әкесінің әкесі, қарт адам, баба",
+            categories: ["Туыстық", "Ұғым"],
+            matches: [
+                { lang: "Маори (mi)", word: "Awhito", similarity: "Дыбыстық", note: "Маори тіліндегі 'Тұқым', 'Ата-баба' ұғымына сәйкес." },
+                { lang: "Санскрит (hi)", word: "Атта", similarity: "Жоғары", note: "Көне Үнді тілінде 'Әке', 'Аға'." },
+                { lang: "Түрік (tr)", word: "Ata", similarity: "Толық", note: "Баба, әке." }
+            ]
+        },
+        {
+            word_kz: "Көк",
+            meaning_kz: "Аспан түсі, көгілдір, Тәңірі",
+            categories: ["Табиғат", "Дін", "Түс"],
+            matches: [
+                { lang: "Ағылшын (en)", word: "Sky", similarity: "Мән-мағыналық", note: "Мағынасы: Аспан. Түркілердің Көк Тәңірі ұғымына жақын." },
+                { lang: "Қытай (zh)", word: "Kòng", similarity: "Дыбыстық", note: "Мағынасы: Бос, Аспан (кей контексте)." },
+                { lang: "Кечуа (qu)", word: "Q'ocha", similarity: "Дыбыстық/Мән-мағыналық", note: "Мағынасы: Көл, теңіз. Судың көк түсі." }
+            ]
+        },
+        {
+            word_kz: "Сан-Бір",
+            meaning_kz: "Жалғыз, БІР, бастау, бөлшектелмейтін",
+            categories: ["Философия", "Санау"],
+            matches: [
+                { lang: "Египет (egy)", word: "Saa", similarity: "Дыбыстық", note: "Мағынасы: Уақыттың бастауы. (Мүмкін, көне сөз)." },
+                { lang: "Латын (la)", word: "Unus", similarity: "Мән-мағыналық", note: "Мағынасы: Бір." },
+                { lang: "Навахо (nav)", word: "Taa", similarity: "Дыбыстық", note: "Мағынасы: Жалғыз, жалпы бастау." }
+            ]
+        },
+        {
+            word_kz: "Қыз",
+            meaning_kz: "Жас әйел, бойжеткен, қорғалған",
+            categories: ["Туыстық", "Ұғым"],
+            matches: [
+                { lang: "Грек (el)", word: "Kóre", similarity: "Дыбыстық", note: "Мағынасы: Қыз, Персефонаның екінші аты. Дыбыстық ұқсастық бар." },
+                { lang: "Араб (ar)", word: "Қисса", similarity: "Дыбыстық", note: "Мағынасы: Әңгіме, аңыз. (Қыз туралы аңыз)." }
+            ]
+        },
+        {
+            word_kz: "Сақ",
+            meaning_kz: "Тарихи атау, 'Мәңгілік' немесе 'Батыл' мағынасы",
+            categories: ["Тарих", "Мифология", "Ұғым"],
+            matches: [
+                { lang: "Үнді (Санскрит)", word: "Сака", similarity: "Жоғары", note: "Мағынасы: Шығыс Иран тайпаларының атауы. Үнді жылнамаларындағы мәңгілік ұғымымен байланысты." },
+                { lang: "Грек (Миф)", word: "Медуза Горгона", similarity: "Мән-мағыналық", note: "Грек деректерінде Сақтардың анасы ретінде түсіндірілуі мүмкін." },
+                { lang: "Көне Скандинавия", word: "Sakar", similarity: "Орташа", note: "Мағынасы: Қақтығыс, жанжал. (Сақтардың батылдығымен байланысты)." }
+            ]
+        },
+        {
+            word_kz: "Ғұн",
+            meaning_kz: "Ежелгі көшпелі тайпа. Еділ-Аттиланың халқы",
+            categories: ["Тарих", "Көсем", "Әлемдік ықпал"],
+            matches: [
+                { lang: "Венгр (Мажар)", word: "Hun", similarity: "Жоғары", note: "Венгрлер өздерін Ғұндардың тікелей ұрпағы санайды. (Ұқсастық: 'Hun' атауында)." },
+                { lang: "Герман (Ескі)", word: "Hune", similarity: "Жоғары", note: "Ғұндардың Еуропадағы атауы. (Аттиланың ықпалы)." },
+                { lang: "Кельт (Ирланд)", word: "Finn", similarity: "Мән-мағыналық", note: "Кейбір тарихи теориялар Ғұндардың Кельт мәдениетіне ықпалын көрсетеді." }
+            ]
+        }
+    ];
 
-// =========================================================
-// 2. БҰРЫНҒЫ МИКРОФОН ЛОГИКАСЫ (Жалғасы)
-// =========================================================
+    // ---------------------------------------------------------------------
+    // 2. ФУНКЦИЯЛАР (SPEECH RECOGNITION ИМИТАЦИЯСЫ)
+    // ---------------------------------------------------------------------
 
-const recordButton = document.getElementById('record-button');
-const recordText = document.getElementById('record-text');
-const statusMessage = document.getElementById('status-message');
-const resultOutput = document.getElementById('result-output');
-const languageSelect = document.getElementById('language');
+    function initializeRecognition() {
+        // Speech Recognition API тек қазіргі браузерлерде жұмыс істейді
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            statusMessage.textContent = 'Кешіріңіз, браузеріңіз дауысты тануды қолдамайды. Мәтін енгізуді қолданыңыз.';
+            recordButton.style.display = 'none';
+            return;
+        }
 
-let isRecording = false;
-let mediaRecorder;
-let audioChunks = [];
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.interimResults = true; // Уақытша нәтижелерді көрсету
+        recognition.lang = languageSelect.value;
+        recognition.continuous = false;
+        recognition.maxAlternatives = 1; // Ең жақсы бір нәтижені ғана көрсету
 
-// --- Дыбыс Жазу Функциялары ---
-
-async function startRecording() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = (event) => {
-            audioChunks.push(event.data);
+        recognition.onstart = () => {
+            recordText.textContent = 'Тыңдау... Тоқтату үшін басыңыз';
+            recordButton.classList.add('is-recording');
+            recordButton.style.backgroundColor = '#dc3545'; // Қызыл түс
         };
 
-        mediaRecorder.onstop = () => {
-            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            processRecording(audioBlob, stream);
+        recognition.onresult = (event) => {
+            const transcript = Array.from(event.results)
+                .map(result => result[0].transcript)
+                .join('');
+            
+            // Нәтижені имитациялау (Біздің жобаның негізгі функциясы)
+            displayPhoneticAnalysis(transcript);
         };
 
-        mediaRecorder.start();
+        recognition.onend = () => {
+            recordText.textContent = 'Жазуды бастау';
+            recordButton.classList.remove('is-recording');
+            recordButton.style.backgroundColor = '#28a745'; // Жасыл түс
+        };
 
-        isRecording = true;
-        // Микрофонды ҚЫЗАРТУДЫ осы жерден бастаймыз
-        recordButton.style.backgroundColor = '#dc3545'; 
-        recordText.textContent = 'Жазылуда... Басу арқылы тоқтату';
-        statusMessage.textContent = 'Айтылуды тыңдауда. Тіл: ' + languageSelect.options[languageSelect.selectedIndex].text;
+        recognition.onerror = (event) => {
+            statusMessage.textContent = `Қате: ${event.error}. Қайтадан байқаңыз.`;
+            recordText.textContent = 'Жазуды бастау';
+            recordButton.classList.remove('is-recording');
+            recordButton.style.backgroundColor = '#28a745';
+        };
+    }
+
+    // Фонетикалық Талдау Нәтижесін Көрсету (Имитация)
+    function displayPhoneticAnalysis(text) {
+        statusMessage.textContent = 'Фонетикалық Талдау Аяқталды!';
         
-    } catch (error) {
-        statusMessage.textContent = 'Қате: Микрофонға рұқсат беріңіз!';
-        console.error('Микрофонға қол жеткізу қатесі:', error);
-    }
-}
-
-function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        statusMessage.textContent = 'Дыбыс жазу аяқталды. Талдау жүргізілуде...';
-        
-        isRecording = false;
-        // Микрофонды ЖАСЫЛ етуді осы жерден бастаймыз
-        recordButton.style.backgroundColor = '#28a745'; 
-        recordText.textContent = 'Жазуды бастау';
-    }
-}
-
-// --- ҒАЛАМДЫҚ ТІЛ АЛГОРИТМІНІҢ ЛОГИКАСЫ (ТОЛЫҚ ЖӘНЕ ҒАЛАМДЫҚ) ---
-
-function runGlobalLexisAnalysis(selectedLang, audioDuration) {
-    let analysisResult = {};
-    let sampleScore;
-
-    sampleScore = 70 + Math.floor(Math.random() * 25);
-    
-    switch (selectedLang) {
-        case 'kk':
-        case 'uz':
-        case 'tr':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Түркі тілдерінің ерекше дыбыстарына назар аударыңыз.`;
-            break;
-        case 'en':
-            sampleScore = 60 + Math.floor(Math.random() * 30);
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Ағылшын тіліндегі "th" және "r" дыбыстарына назар аударыңыз.`;
-            break;
-        case 'ru':
-        case 'uk':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Славян тілдеріндегі екпін мен дауысты дыбыстардың айтылуын тексеріңіз.`;
-            break;
-        case 'de':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Неміс тілінің қатты "R" дыбысына және соңғы буындарды айту ерекшеліктеріне көңіл бөліңіз.`;
-            break;
-        case 'es':
-        case 'pt':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Роман тілдеріндегі мұрындық дауыстылар мен дірілдеуді дұрыстаңыз.`;
-            break;
-        case 'el':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Грек тілінің соңғы заманауи және ежелгі дыбыстарының айырмашылығын тексеріңіз.`;
-            break;
-        case 'ar':
-        case 'egy':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Семит/Афроазиялық тілдердегі тамақ (фарингал) және ембін дыбыстарын тексеріңіз.`;
-            break;
-        case 'hi':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Үнді тіліндегі ретрофлексті дауыссыз дыбыстарға назар аударыңыз.`;
-            break;
-        case 'bo':
-            sampleScore = 60 + Math.floor(Math.random() * 20);
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Тибет тілінің тоналды және аспирациялық (қарқынды) дыбыстарын бақылаңыз.`;
-            break;
-        case 'mi':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Маори тілінің қысқа вокалдық дыбыстарын және макронды (созылыңқы) дыбыстарды дұрыстаңыз.`;
-            break;
-        case 'qu':
-        case 'nah':
-        case 'nav':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Бұл тілдердің эжективті (қатаң) және латералды дыбыстарын тексеріңіз.`;
-            break;
-        case 'zh':
-        case 'ja':
-        case 'mg':
-            analysisResult.purity = sampleScore + '%';
-            analysisResult.feedback = `Дыбыс биіктігіне (тонға) және буындардың ұзақтығына көңіл бөліңіз.`;
-            break;
-        default:
-            analysisResult.purity = 'N/A';
-            analysisResult.feedback = 'Талдау тек таңдалған тіл үшін жүргізіледі.';
-    }
-    
-    analysisResult.duration = audioDuration;
-    return analysisResult;
-} 
-
-function processRecording(audioBlob, stream) {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audioDuration = Math.round(audioBlob.size / 10000);
-    const selectedLang = languageSelect.value;
-    const analysis = runGlobalLexisAnalysis(selectedLang, audioDuration);
-
-    const audioPlayer = `<audio controls src="${audioUrl}"></audio>`;
-
-    setTimeout(() => {
+        // Нәтижелерді HTML ретінде форматтау
         resultOutput.innerHTML = `
-            <h3>Талдау нәтижесі (Globàl Lexis)</h3>
-            <p><strong>Тексерілген тіл:</strong> ${languageSelect.options[languageSelect.selectedIndex].text}</p>
-            <p><strong>Аудио ұзақтығы (секунд):</strong> ${analysis.duration} сек (шамамен)</p>
-            <p><strong>Сіздің жазбаңыз:</strong> ${audioPlayer}</p>
-            <hr>
-            <p style="color: #007bff; font-weight: bold; font-size: 1.1em;">
-                <i class="fas fa-percent"></i> Тіл Тазалығы: ${analysis.purity}
-            </p>
-            <p style="color: #343a40;">
-                <i class="fas fa-comment"></i> Маманның пікірі: ${analysis.feedback}
-            </p>
+            <h4>🗣️ Фонетикалық/Лексикалық Анализ:</h4>
+            <p><strong>Алынған Мәтін (${languageSelect.value.toUpperCase()}):</strong> ${text}</p>
+            <p><strong>Синтаксистік талдау:</strong> Сөздердің негізгі түбірлері: 'Көк', 'Ата', 'Бір'.</p>
+            <p><strong>Әлеуетті байланыс:</strong> Жазылған сөздердің көне түркі және ғаламдық тілдердегі 'Лексикалық Мұрамен' байланысы тексерілуде...</p>
         `;
-        statusMessage.textContent = 'Дайын. Жазуды тыңдай аласыз.';
-        stream.getTracks().forEach(track => track.stop());
-    }, 1500);
-}
-
-recordButton.addEventListener('click', () => {
-    if (!isRecording) {
-        startRecording();
-    } else {
-        stopRecording();
-    }
-});
-
-
-// =========================================================
-// 3. ЛЕКСИКАЛЫҚ МҰРА МОДУЛІ (INTERFACE LOGIC)
-// =========================================================
-
-// Жаңа HTML элементтерін құру
-const heritageArea = document.createElement('section');
-heritageArea.className = 'heritage-area';
-heritageArea.innerHTML = `
-    <h2>🌍 Лексикалық Мұра Модулі (Тілдер Үндестігі)</h2>
-    <p>Талданатын сөздер: <strong id="current-word-display">Ата</strong></p>
-    <div id="heritage-output"></div>
-    <div style="margin-top: 15px;">
-        <button id="show-ata" class="switch-btn">Ата</button>
-        <button id="show-kok" class="switch-btn">Көк</button>
-        <button id="show-bir" class="switch-btn">Сан-Бір</button>
-        <button id="show-kyz" class="switch-btn">Қыз</button> 
-    </div>
-    <hr>
-`;
-
-// Негізгі контейнерге қосу
-const appContainer = document.querySelector('.app-container');
-if (appContainer) {
-    appContainer.appendChild(heritageArea);
-}
-
-// Таңдалған сөздің тарихи үндестігін көрсету функциясы
-function displayLexicalHeritage(word) {
-    const item = LEXICAL_HERITAGE.find(data => data.word_kz === word);
-    const output = document.getElementById('heritage-output');
-    const wordDisplay = document.getElementById('current-word-display');
-
-    if (!item) {
-        output.innerHTML = `<p><strong>${word}</strong> сөзі деректер қорында табылмады.</p>`;
-        return;
     }
 
-    wordDisplay.textContent = item.word_kz;
+    // ---------------------------------------------------------------------
+    // 3. ЛЕКСИКАЛЫҚ МҰРА МОДУЛІ (JS арқылы құрылған)
+    // ---------------------------------------------------------------------
 
-    let matchesHTML = `
-        <p><strong>Қазақша:</strong> ${item.word_kz} (${item.meaning_kz})</p>
-        <h4>Үндестік Табылған Тілдер:</h4>
-        <ul>
+    const heritageArea = document.createElement('div');
+    heritageArea.className = 'module-area';
+    heritageArea.id = 'lexical-heritage-module';
+    heritageArea.innerHTML = `
+        <hr>
+        <h3>📜 Лексикалық Мұра Модулі</h3>
+        <p>Ғаламдық тілдердің ортақ түбірлері мен ұғымдарын салыстыру.</p>
+        <div id="heritage-output"></div>
+        <div style="margin-top: 15px;">
+            <button id="show-ata" class="switch-btn">Ата</button>
+            <button id="show-kok" class="switch-btn">Көк</button>
+            <button id="show-bir" class="switch-btn">Сан-Бір</button>
+            <button id="show-kyz" class="switch-btn">Қыз</button>
+            <button id="show-sak" class="switch-btn">Сақ</button>
+            <button id="show-gun" class="switch-btn">Ғұн</button>
+        </div>
+        <hr>
     `;
+    document.querySelector('.app-container').appendChild(heritageArea);
 
-    item.matches.forEach(match => {
-        matchesHTML += `
-            <li>
-                <strong>${match.lang}</strong>: ${match.word}
-                <span style="color: ${match.similarity === 'Жоғары' ? 'green' : 'orange'};">(Ұқсастық: ${match.similarity})</span>
-                <p style="font-size: 0.8em; color: #6c757d; margin: 2px 0 10px 0;">
-                    Түсініктеме: ${match.note}
-                </p>
-            </li>
+    function displayLexicalHeritage(word) {
+        const data = LEXICAL_HERITAGE.find(item => item.word_kz === word);
+        const outputDiv = document.getElementById('heritage-output');
+
+        if (data) {
+            let htmlContent = `
+                <div class="heritage-card">
+                    <h4>Сөз: ${data.word_kz} (${data.meaning_kz})</h4>
+                    <p><strong>Санаттар:</strong> ${data.categories.join(', ')}</p>
+                    <hr>
+                    <h5>🌐 Ғаламдық Сәйкестіктер:</h5>
+                    <ul>
+            `;
+
+            data.matches.forEach(match => {
+                htmlContent += `
+                    <li>
+                        <strong>${match.lang}:</strong> ${match.word} (Ұқсастық: ${match.similarity})<br>
+                        <small>Көрнекілік: ${match.note}</small>
+                    </li>
+                `;
+            });
+
+            htmlContent += `</ul></div>`;
+            outputDiv.innerHTML = htmlContent;
+        } else {
+            outputDiv.innerHTML = `<p><strong>${word}</strong> сөзі деректер қорынан табылмады.</p>`;
+        }
+    }
+
+    // ---------------------------------------------------------------------
+    // 4. ҒАЛАМДЫҚ КОДТАР ЛЕКСИКАСЫ (UCL) МОДУЛІ
+    // ---------------------------------------------------------------------
+
+    const uclArea = document.createElement('div');
+    uclArea.className = 'module-area ucl-area';
+    uclArea.id = 'ucl-module';
+    uclArea.innerHTML = `
+        <hr>
+        <h3>⚜️ Ғаламдық Кодтар Лексикасы (UCL)</h3>
+        <p>Адамнан тыс және табиғи кодтарды декодтауға арналған модуль.</p>
+        <button id="activate-ucl" class="switch-btn" style="background-color:#dc3545;">Модульді Іске Қосу</button>
+        <div id="ucl-output" class="hidden"></div>
+        <hr>
+    `;
+    document.querySelector('.app-container').appendChild(uclArea);
+
+    function activateUCL() {
+        const uclOutput = document.getElementById('ucl-output');
+        uclOutput.classList.remove('hidden');
+
+        uclOutput.innerHTML = `
+            <div class="ucl-card">
+                <p><strong>Модуль Қосылды:</strong> Адамнан тыс тілдер модулі — ішінен терезе ашылды!</p>
+                <p><strong>Декодтау нәтижесі:</strong></p>
+                <ul>
+                    <li>**Ғарыштық жиілік (432 Гц):** Тұрақтылық, "Мәңгілік Айналу" коды (Сақ/Ғұн философиясымен байланысты).</li>
+                    <li>**Кванттық код (0/1):** Энергияның және субстанцияның тыныштық күйі (Сан-Бір ұғымына жақын).</li>
+                    <li>**Жүйеге Жазылу:** Әлдебір ғаламдық сайтқа жазылуда...</li>
+                </ul>
+            </div>
         `;
+        alert("Ғаламдық Кодтар Лексикасының жүйесі іске қосылды. Белгісіз тілдерді декодтау басталады...");
+    }
+
+    // ---------------------------------------------------------------------
+    // 5. ОҚИҒА ТЫҢДАУШЫЛАРЫ (EVENT LISTENERS)
+    // ---------------------------------------------------------------------
+
+    recordButton.addEventListener('click', () => {
+        if (recordButton.classList.contains('is-recording')) {
+            recognition.stop();
+        } else {
+            recognition.start();
+        }
     });
 
-    matchesHTML += `</ul>`;
-    output.innerHTML = matchesHTML;
-}
+    languageSelect.addEventListener('change', () => {
+        initializeRecognition();
+        statusMessage.textContent = `Тіл ${languageSelect.options[languageSelect.selectedIndex].text} болып өзгертілді. Жазуды бастаңыз.`;
+    });
 
-// Батырмаларға логика қосу
-document.getElementById('show-ata').addEventListener('click', () => displayLexicalHeritage("Ата"));
-document.getElementById('show-kok').addEventListener('click', () => displayLexicalHeritage("Көк"));
-document.getElementById('show-bir').addEventListener('click', () => displayLexicalHeritage("Сан-Бір"));
-document.getElementById('show-kyz').addEventListener('click', () => displayLexicalHeritage("Қыз"));
+    // Лексикалық Мұра батырмалары
+    document.getElementById('show-ata').addEventListener('click', () => displayLexicalHeritage("Ата"));
+    document.getElementById('show-kok').addEventListener('click', () => displayLexicalHeritage("Көк"));
+    document.getElementById('show-bir').addEventListener('click', () => displayLexicalHeritage("Сан-Бір"));
+    document.getElementById('show-kyz').addEventListener('click', () => displayLexicalHeritage("Қыз"));
+    document.getElementById('show-sak').addEventListener('click', () => displayLexicalHeritage("Сақ"));
+    document.getElementById('show-gun').addEventListener('click', () => displayLexicalHeritage("Ғұн"));
 
+    // UCL батырмасы
+    document.getElementById('activate-ucl').addEventListener('click', activateUCL);
 
-// =========================================================
-// 4. ⚜️ ҒАЛАМДЫҚ КОДТАР ЛЕКСИКАСЫ (UCL) МОДУЛІ ⚜️ - ЕҢ СОҢЫ
-// =========================================================
-
-const uclArea = document.createElement('section');
-uclArea.className = 'ucl-area';
-uclArea.innerHTML = `
-    <h2>⚜️ Ғаламдық Кодтар Лексикасы (UCL) ⚜️</h2>
-    <p>Ақпарат — Әлемнің Негізгі Тілі. Бұл модуль адамнан тыс тілдерді талдауға арналған.</p>
-    
-    <div class="ucl-item">
-        <strong>1. Био-Тілдер Коды (Сүлеймен Пайғамбар Мұрасы):</strong>
-        <p>Құстардың миграциялық әндерінің жиілігі, дельфиндердің ультрадыбыстары. [Талдау: 15,000 Гц]</p>
-    </div>
-    
-    <div class="ucl-item">
-        <strong>2. Кванттық/Химиялық Тіл (Өзгермейтін Код):</strong>
-        <p>Кремний (Si) және Көміртек (C) элементтерінің тербеліс кодтары. Әр заттың "сөздік қоры" - физикалық тұрақтылық.</p>
-    </div>
-    
-    <div class="ucl-item">
-        <strong>3. Космос/Форма Тілі (Белгісіздің Хабары):</strong>
-        <p>Егістіктегі құпия образдар (форма-тіл) және ғарыштан келетін "сақталған кітапханалар" теориясы.</p>
-    </div>
-    
-    <button id="activate-ucl" class="ucl-btn">Бастапқы Ғаламдық Ақпаратты Жүктеу</button>
-`;
-
-// Негізгі контейнерге қосу (Лексикалық Мұрадан кейін)
-if (appContainer) {
-    appContainer.appendChild(uclArea);
-}
-
-// UCL-ді іске қосу логикасы (Батырманы басқанда)
-document.getElementById('activate-ucl').addEventListener('click', () => {
-    alert("Ғаламдық Кодтар Лексикасының жүйесі іске қосылды. Белгісіз тілдерді декодтау басталады...");
-});
-
-
-// Бағдарлама жүктелгенде "Ата" сөзін автоматты түрде көрсету (Ең соңы)
-window.addEventListener('load', () => {
-    displayLexicalHeritage("Ата"); 
+    // Бастапқы іске қосу
+    initializeRecognition();
 });
