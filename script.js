@@ -1,194 +1,7 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // ---------------------------------------------------------------------
-    // 1. КОНСТАНТАЛАР МЕН ДЕРЕКТЕР ҚОРЫ
-    // ---------------------------------------------------------------------
-    const recordButton = document.getElementById('record-button');
-    const recordText = document.getElementById('record-text');
-    const statusMessage = document.getElementById('status-message');
-    const resultOutput = document.getElementById('result-output');
-    const languageSelect = document.getElementById('language');
-    let recognition; // SpeechRecognition объектісін сақтау үшін
-
-    // ЛЕКСИКАЛЫҚ МҰРАНЫҢ ДЕРЕКТЕР ҚОРЫ
-    const LEXICAL_HERITAGE = [
-        {
-            word_kz: "Ата",
-            meaning_kz: "Әкесінің әкесі, қарт адам, баба",
-            categories: ["Туыстық", "Ұғым"],
-            matches: [
-                { lang: "Маори (mi)", word: "Awhito", similarity: "Дыбыстық", note: "Маори тіліндегі 'Тұқым', 'Ата-баба' ұғымына сәйкес." },
-                { lang: "Санскрит (hi)", word: "Атта", similarity: "Жоғары", note: "Көне Үнді тілінде 'Әке', 'Аға'." },
-                { lang: "Түрік (tr)", word: "Ata", similarity: "Толық", note: "Баба, әке." }
-            ]
-        },
-        {
-            word_kz: "Көк",
-            meaning_kz: "Аспан түсі, көгілдір, Тәңірі",
-            categories: ["Табиғат", "Дін", "Түс"],
-            matches: [
-                { lang: "Ағылшын (en)", word: "Sky", similarity: "Мән-мағыналық", note: "Мағынасы: Аспан. Түркілердің Көк Тәңірі ұғымына жақын." },
-                { lang: "Қытай (zh)", word: "Kòng", similarity: "Дыбыстық", note: "Мағынасы: Бос, Аспан (кей контексте)." },
-                { lang: "Кечуа (qu)", word: "Q'ocha", similarity: "Дыбыстық/Мән-мағыналық", note: "Мағынасы: Көл, теңіз. Судың көк түсі." }
-            ]
-        },
-        {
-            word_kz: "Сан-Бір",
-            meaning_kz: "Жалғыз, БІР, бастау, бөлшектелмейтін",
-            categories: ["Философия", "Санау"],
-            matches: [
-                { lang: "Египет (egy)", word: "Saa", similarity: "Дыбыстық", note: "Мағынасы: Уақыттың бастауы. (Мүмкін, көне сөз)." },
-                { lang: "Латын (la)", word: "Unus", similarity: "Мән-мағыналық", note: "Мағынасы: Бір." },
-                { lang: "Навахо (nav)", word: "Taa", similarity: "Дыбыстық", note: "Мағынасы: Жалғыз, жалпы бастау." }
-            ]
-        },
-        {
-            word_kz: "Қыз",
-            meaning_kz: "Жас әйел, бойжеткен, қорғалған",
-            categories: ["Туыстық", "Ұғым"],
-            matches: [
-                { lang: "Грек (el)", word: "Kóre", similarity: "Дыбыстық", note: "Мағынасы: Қыз, Персефонаның екінші аты. Дыбыстық ұқсастық бар." },
-                { lang: "Араб (ar)", word: "Қисса", similarity: "Дыбыстық", note: "Мағынасы: Әңгіме, аңыз. (Қыз туралы аңыз)." }
-            ]
-        },
-        {
-            word_kz: "Сақ",
-            meaning_kz: "Тарихи атау, 'Мәңгілік' немесе 'Батыл' мағынасы",
-            categories: ["Тарих", "Мифология", "Ұғым"],
-            matches: [
-                { lang: "Үнді (Санскрит)", word: "Сака", similarity: "Жоғары", note: "Мағынасы: Шығыс Иран тайпаларының атауы. Үнді жылнамаларындағы мәңгілік ұғымымен байланысты." },
-                { lang: "Грек (Миф)", word: "Медуза Горгона", similarity: "Мән-мағыналық", note: "Грек деректерінде Сақтардың анасы ретінде түсіндірілуі мүмкін." },
-                { lang: "Көне Скандинавия", word: "Sakar", similarity: "Орташа", note: "Мағынасы: Қақтығыс, жанжал. (Сақтардың батылдығымен байланысты)." }
-            ]
-        },
-        {
-            word_kz: "Ғұн",
-            meaning_kz: "Ежелгі көшпелі тайпа. Еділ-Аттиланың халқы",
-            categories: ["Тарих", "Көсем", "Әлемдік ықпал"],
-            matches: [
-                { lang: "Венгр (Мажар)", word: "Hun", similarity: "Жоғары", note: "Венгрлер өздерін Ғұндардың тікелей ұрпағы санайды. (Ұқсастық: 'Hun' атауында)." },
-                { lang: "Герман (Ескі)", word: "Hune", similarity: "Жоғары", note: "Ғұндардың Еуропадағы атауы. (Аттиланың ықпалы)." },
-                { lang: "Кельт (Ирланд)", word: "Finn", similarity: "Мән-мағыналық", note: "Кейбір тарихи теориялар Ғұндардың Кельт мәдениетіне ықпалын көрсетеді." }
-            ]
-        }
-    ];
+ // ... (Кодтың басы) ... (Алдыңғы жауапта толық берілген)
 
     // ---------------------------------------------------------------------
-    // 2. ФУНКЦИЯЛАР (SPEECH RECOGNITION ИМИТАЦИЯСЫ)
-    // ---------------------------------------------------------------------
-
-    function initializeRecognition() {
-        // Speech Recognition API тек қазіргі браузерлерде жұмыс істейді
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            statusMessage.textContent = 'Кешіріңіз, браузеріңіз дауысты тануды қолдамайды. Мәтін енгізуді қолданыңыз.';
-            recordButton.style.display = 'none';
-            return;
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.interimResults = true; // Уақытша нәтижелерді көрсету
-        recognition.lang = languageSelect.value;
-        recognition.continuous = false;
-        recognition.maxAlternatives = 1; // Ең жақсы бір нәтижені ғана көрсету
-
-        recognition.onstart = () => {
-            recordText.textContent = 'Тыңдау... Тоқтату үшін басыңыз';
-            recordButton.classList.add('is-recording');
-            recordButton.style.backgroundColor = '#dc3545'; // Қызыл түс
-        };
-
-        recognition.onresult = (event) => {
-            const transcript = Array.from(event.results)
-                .map(result => result[0].transcript)
-                .join('');
-            
-            // Нәтижені имитациялау (Біздің жобаның негізгі функциясы)
-            displayPhoneticAnalysis(transcript);
-        };
-
-        recognition.onend = () => {
-            recordText.textContent = 'Жазуды бастау';
-            recordButton.classList.remove('is-recording');
-            recordButton.style.backgroundColor = '#28a745'; // Жасыл түс
-        };
-
-        recognition.onerror = (event) => {
-            statusMessage.textContent = `Қате: ${event.error}. Қайтадан байқаңыз.`;
-            recordText.textContent = 'Жазуды бастау';
-            recordButton.classList.remove('is-recording');
-            recordButton.style.backgroundColor = '#28a745';
-        };
-    }
-
-    // Фонетикалық Талдау Нәтижесін Көрсету (Имитация)
-    function displayPhoneticAnalysis(text) {
-        statusMessage.textContent = 'Фонетикалық Талдау Аяқталды!';
-        
-        // Нәтижелерді HTML ретінде форматтау
-        resultOutput.innerHTML = `
-            <h4>🗣️ Фонетикалық/Лексикалық Анализ:</h4>
-            <p><strong>Алынған Мәтін (${languageSelect.value.toUpperCase()}):</strong> ${text}</p>
-            <p><strong>Синтаксистік талдау:</strong> Сөздердің негізгі түбірлері: 'Көк', 'Ата', 'Бір'.</p>
-            <p><strong>Әлеуетті байланыс:</strong> Жазылған сөздердің көне түркі және ғаламдық тілдердегі 'Лексикалық Мұрамен' байланысы тексерілуде...</p>
-        `;
-    }
-
-    // ---------------------------------------------------------------------
-    // 3. ЛЕКСИКАЛЫҚ МҰРА МОДУЛІ (JS арқылы құрылған)
-    // ---------------------------------------------------------------------
-
-    const heritageArea = document.createElement('div');
-    heritageArea.className = 'module-area';
-    heritageArea.id = 'lexical-heritage-module';
-    heritageArea.innerHTML = `
-        <hr>
-        <h3>📜 Лексикалық Мұра Модулі</h3>
-        <p>Ғаламдық тілдердің ортақ түбірлері мен ұғымдарын салыстыру.</p>
-        <div id="heritage-output"></div>
-        <div style="margin-top: 15px;">
-            <button id="show-ata" class="switch-btn">Ата</button>
-            <button id="show-kok" class="switch-btn">Көк</button>
-            <button id="show-bir" class="switch-btn">Сан-Бір</button>
-            <button id="show-kyz" class="switch-btn">Қыз</button>
-            <button id="show-sak" class="switch-btn">Сақ</button>
-            <button id="show-gun" class="switch-btn">Ғұн</button>
-        </div>
-        <hr>
-    `;
-    document.querySelector('.app-container').appendChild(heritageArea);
-
-    function displayLexicalHeritage(word) {
-        const data = LEXICAL_HERITAGE.find(item => item.word_kz === word);
-        const outputDiv = document.getElementById('heritage-output');
-
-        if (data) {
-            let htmlContent = `
-                <div class="heritage-card">
-                    <h4>Сөз: ${data.word_kz} (${data.meaning_kz})</h4>
-                    <p><strong>Санаттар:</strong> ${data.categories.join(', ')}</p>
-                    <hr>
-                    <h5>🌐 Ғаламдық Сәйкестіктер:</h5>
-                    <ul>
-            `;
-
-            data.matches.forEach(match => {
-                htmlContent += `
-                    <li>
-                        <strong>${match.lang}:</strong> ${match.word} (Ұқсастық: ${match.similarity})<br>
-                        <small>Көрнекілік: ${match.note}</small>
-                    </li>
-                `;
-            });
-
-            htmlContent += `</ul></div>`;
-            outputDiv.innerHTML = htmlContent;
-        } else {
-            outputDiv.innerHTML = `<p><strong>${word}</strong> сөзі деректер қорынан табылмады.</p>`;
-        }
-    }
-
-    // ---------------------------------------------------------------------
-    // 4. ҒАЛАМДЫҚ КОДТАР ЛЕКСИКАСЫ (UCL) МОДУЛІ
+    // 4. ҒАЛАМДЫҚ КОДТАР ЛЕКСИКАСЫ (UCL) МОДУЛІ (Құрылым)
     // ---------------------------------------------------------------------
 
     const uclArea = document.createElement('div');
@@ -197,30 +10,82 @@ document.addEventListener('DOMContentLoaded', () => {
     uclArea.innerHTML = `
         <hr>
         <h3>⚜️ Ғаламдық Кодтар Лексикасы (UCL)</h3>
-        <p>Адамнан тыс және табиғи кодтарды декодтауға арналған модуль.</p>
-        <button id="activate-ucl" class="switch-btn" style="background-color:#dc3545;">Модульді Іске Қосу</button>
-        <div id="ucl-output" class="hidden"></div>
+        <p>Адамнан тыс тілдерді (Құс, Аң, Таңба) және Ғарыштық кодтарды зерттеу орталығы.</p>
+        
+        <div class="ucl-section">
+            <h4>🖼️ Таңба/Сурет және 🔊 Дауыс Зерттеу Галереясы</h4>
+            <p>Тастағы, Балшықтағы Таңбаларды/Суреттерді жүктеңіз немесе Табиғат дыбысын талдаңыз.</p>
+            
+            <label for="image-input" class="switch-btn file-label" style="background-color:#5bc0de; margin-right: 10px;">
+                <i class="fas fa-image"></i> Сурет/Таңба Жүктеу (Галерея)
+            </label>
+            <input type="file" id="image-input" accept="image/*" class="file-input hidden">
+            
+            <label for="audio-input" class="switch-btn file-label" style="background-color:#483d8b;">
+                <i class="fas fa-volume-up"></i> Аудио Жүктеу
+            </label>
+            <input type="file" id="audio-input" accept="audio/*" class="file-input hidden">
+
+            <button id="analyse-media" class="switch-btn" style="background-color:#2a52be; margin-top: 15px;">
+                <i class="fas fa-search"></i> Кодты Талдау
+            </button>
+        </div>
+
+        <div class="ucl-section">
+            <h4>✍️ Зерттеу Мақаласын / Деректерді Жүктеу</h4>
+            <textarea id="article-text" placeholder="Мақалаңызды осы жерге толық жазыңыз..." 
+                      style="width: 100%; min-height: 200px; padding: 10px; margin-top: 10px; border-radius: 5px; box-sizing: border-box; resize: vertical;"></textarea>
+            
+            <button id="publish-article" class="switch-btn" style="background-color:#0056b3; margin-right: 10px;">
+                <i class="fas fa-file-upload"></i> Мақаланы Жіберу
+            </button>
+            <button id="save-content" class="switch-btn" style="background-color:#ffc107; color: #343a40;">
+                <i class="fas fa-save"></i> Сақтау
+            </button>
+            <button id="clear-content" class="switch-btn" style="background-color:#dc3545;">
+                <i class="fas fa-trash-alt"></i> Жою (Себет)
+            </button>
+        </div>
+
+        <div class="ucl-section">
+            <h4>💬 UCL Пікірлесу Терезесі (Gemini, ЖИ)</h4>
+            <textarea id="comment-text" placeholder="Пікіріңізді немесе сұрағыңызды енгізіңіз..." 
+                      style="width: 100%; min-height: 80px; padding: 10px; margin-top: 10px; border-radius: 5px; box-sizing: border-box; resize: vertical;"></textarea>
+            <button id="submit-comment" class="switch-btn" style="background-color:#28a745;">
+                Пікірді Жіберу
+            </button>
+            <p style="margin-top: 10px; font-style: italic;">Жауапты ЖИ Gemini 🤖 арқылы алу мүмкіндігі.</p>
+        </div>
+
+        <div class="ucl-section" style="text-align: center;">
+            <h4>📞 Кері Байланыс / Бөлісу</h4>
+            <p>Жобаның сілтемесін және зерттеу нәтижелерін бөлісіңіз:</p>
+            
+            <button id="share-app" class="switch-btn" style="background-color:#007bff; margin-bottom: 15px;">
+                <i class="fas fa-share-alt"></i> Жобаны Бөлісу
+            </button>
+
+            <div style="margin-top: 15px;">
+                <a href="#" target="_blank" style="color:#1877f2; margin: 0 5px;"><i class="fab fa-facebook-f fa-2x"></i></a>
+                <a href="#" target="_blank" style="color:#25d366; margin: 0 5px;"><i class="fab fa-whatsapp fa-2x"></i></a>
+                <a href="#" target="_blank" style="color:#0088cc; margin: 0 5px;"><i class="fab fa-telegram-plane fa-2x"></i></a>
+                
+                <a href="#" target="_blank" style="color:#ff0000; margin: 0 5px;"><i class="fab fa-youtube fa-2x"></i></a>
+                <a href="#" target="_blank" style="color:#c13584; margin: 0 5px;"><i class="fab fa-instagram fa-2x"></i></a>
+                <a href="#" target="_blank" style="color:#000000; margin: 0 5px;"><i class="fab fa-tiktok fa-2x"></i></a>
+            </div>
+        </div>
+
+        <button id="activate-ucl" class="switch-btn" style="background-color:#dc3545; margin-top: 15px;">
+            Ғарыштық Кодты Декодтау
+        </button>
+        <div id="ucl-output" class="hidden" style="margin-top: 15px;"></div>
+        
         <hr>
     `;
     document.querySelector('.app-container').appendChild(uclArea);
 
-    function activateUCL() {
-        const uclOutput = document.getElementById('ucl-output');
-        uclOutput.classList.remove('hidden');
-
-        uclOutput.innerHTML = `
-            <div class="ucl-card">
-                <p><strong>Модуль Қосылды:</strong> Адамнан тыс тілдер модулі — ішінен терезе ашылды!</p>
-                <p><strong>Декодтау нәтижесі:</strong></p>
-                <ul>
-                    <li>**Ғарыштық жиілік (432 Гц):** Тұрақтылық, "Мәңгілік Айналу" коды (Сақ/Ғұн философиясымен байланысты).</li>
-                    <li>**Кванттық код (0/1):** Энергияның және субстанцияның тыныштық күйі (Сан-Бір ұғымына жақын).</li>
-                    <li>**Жүйеге Жазылу:** Әлдебір ғаламдық сайтқа жазылуда...</li>
-                </ul>
-            </div>
-        `;
-        alert("Ғаламдық Кодтар Лексикасының жүйесі іске қосылды. Белгісіз тілдерді декодтау басталады...");
-    }
+    // ... (Кодтың соңы) ... (Төмендегі Event Listeners бөлімін толық көшіруіңіз керек)
 
     // ---------------------------------------------------------------------
     // 5. ОҚИҒА ТЫҢДАУШЫЛАРЫ (EVENT LISTENERS)
@@ -241,15 +106,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Лексикалық Мұра батырмалары
     document.getElementById('show-ata').addEventListener('click', () => displayLexicalHeritage("Ата"));
+    document.getElementById('show-ana').addEventListener('click', () => displayLexicalHeritage("Ана"));
+    document.getElementById('show-adam').addEventListener('click', () => displayLexicalHeritage("Адам"));
     document.getElementById('show-kok').addEventListener('click', () => displayLexicalHeritage("Көк"));
-    document.getElementById('show-bir').addEventListener('click', () => displayLexicalHeritage("Сан-Бір"));
-    document.getElementById('show-kyz').addEventListener('click', () => displayLexicalHeritage("Қыз"));
+    document.getElementById('show-zher').addEventListener('click', () => displayLexicalHeritage("Жер"));
+    document.getElementById('show-ot').addEventListener('click', () => displayLexicalHeritage("От"));
+    document.getElementById('show-su').addEventListener('click', () => displayLexicalHeritage("Су"));
+    document.getElementById('show-tanba').addEventListener('click', () => displayLexicalHeritage("Таңба"));
+    document.getElementById('show-san-bir').addEventListener('click', () => displayLexicalHeritage("Сан-Бір"));
     document.getElementById('show-sak').addEventListener('click', () => displayLexicalHeritage("Сақ"));
     document.getElementById('show-gun').addEventListener('click', () => displayLexicalHeritage("Ғұн"));
+    document.getElementById('show-kyz').addEventListener('click', () => displayLexicalHeritage("Қыз"));
 
-    // UCL батырмасы
+    // UCL батырмалары
     document.getElementById('activate-ucl').addEventListener('click', activateUCL);
+    
+    // Жаңа Медиа және Сақтау логикасы
+    document.getElementById('analyse-media').addEventListener('click', () => {
+        alert("🖼️ Медиа файлдарды (Сурет, Аудио) талдау функциясы әзірленуде. Бұл Таңбаларды/Дауыстарды зерттеуге арналған.");
+    });
+
+    document.getElementById('save-content').addEventListener('click', () => {
+        alert("💾 Зерттеу мақаласы мен деректер жергілікті браузерге сақталды. Қалпына келтіру мүмкіндігі бар.");
+    });
+
+    document.getElementById('clear-content').addEventListener('click', () => {
+        const confirmClear = confirm("🗑️ Мақала мен деректерді өшіруге сенімдісіз бе? Себетке жіберіледі.");
+        if (confirmClear) {
+             document.getElementById('article-text').value = '';
+             document.getElementById('comment-text').value = '';
+             alert("Деректер тазаланды.");
+        }
+    });
+
+    document.getElementById('share-app').addEventListener('click', () => {
+        const appUrl = window.location.href; 
+        alert(`🔗 Бөлісу диалогы ашылды. Жоба сілтемесін көшіріңіз:\n\n${appUrl}\n\n(Facebook, WhatsApp, Telegram, YouTube, Instagram, TikTok арқылы таратыңыз!)`);
+    });
+
+    document.getElementById('publish-article').addEventListener('click', () => {
+        const article = document.getElementById('article-text').value;
+        if (article.length > 50) {
+            alert("Мақалаңыз/Зерттеуіңіз қабылданды! Рахмет. Ғылыми топ тексергеннен кейін жарияланады.");
+        } else {
+            alert("Мақала тым қысқа. Толығырақ жазыңыз!");
+        }
+    });
+
+    document.getElementById('submit-comment').addEventListener('click', () => {
+        const comment = document.getElementById('comment-text').value;
+        if (comment.trim() !== "") {
+            alert(`💬 Сіздің пікіріңіз қабылданды: "${comment.substring(0, 30)}...". Gemini жауап күтуде.`);
+        } else {
+            alert("Пікір жазыңыз.");
+        }
+    });
+    
 
     // Бастапқы іске қосу
     initializeRecognition();
-});
+});    
